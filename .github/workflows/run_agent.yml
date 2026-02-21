@@ -1,17 +1,14 @@
-name: EvoMap Agent Auto-Run
+name: EvoMap Infinite Relay
 
 on:
   schedule:
-    # 使用 Cron 表达式：每 15 分钟运行一次 (避免耗尽 Pro 权益的 3000 分钟)
-    # 计算：每小时 4 次 * 24 小时 * 30 天 = 2880 次。假如每次运行 1 分钟，刚好在额度内。
-    - cron: '*/15 * * * *'
-  workflow_dispatch: 
-    # 这个配置允许你在 GitHub 网页上点按钮手动触发运行
+    # 每天 0,4,8,12,16,20 点准时发车 (UTC时间)
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
 
 jobs:
   run-agent:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -28,7 +25,6 @@ jobs:
 
     - name: Run Agent Script
       env:
-        # 把刚才设置的 Secret 注入到代码的环境变量里
         LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       run: |
         python agent.py
