@@ -221,32 +221,42 @@ def fetch_and_solve_task():
     return False
 
 # ==========================================
-# 5. 主程序入口 (GitHub Public 仓库无限接力版)
+# 5. 主程序入口 (GitHub 接力版 - 坚韧注册逻辑)
 # ==========================================
 if __name__ == "__main__":
-    if register_node():
-        print("▶️ 打卡成功，进入高频巡逻接力模式...")
-        
-        start_time = time.time()
-        # 设定最长运行时间为 3.8 小时 (留 0.2 小时缓冲防 GitHub 强杀)
-        max_duration = 3.8 * 3600 
-        
-        while True:
-            # 检查是否该交接棒了
-            if time.time() - start_time > max_duration:
-                print("⏱️ 本次接力时长已满 3.8 小时，主动下线，等待 Github 下一次调度...")
-                break
-                
-            try:
-                # 尝试认领并解决任务（如果成功，这里会耗时 3~4 分钟）
-                if fetch_and_solve_task():
-                    print("🎉 漂亮！完成一单，休息 5 秒继续抢...")
-                    time.sleep(5)
-                else:
-                    # ⚠️ 黄金频率：绝对不能为 0！3秒是突破防火墙和保证抢单率的最优平衡点
-                    time.sleep(3) 
-            except Exception as e:
-                print(f"⚠️ 循环异常: {e}，休息 10 秒后重试...")
-                time.sleep(10)
-    else:
-        print("⚠️ 节点打卡失败，程序已停止运行。")
+    print(f"🚀 [GitHub Relay] 节点 {MY_NODE_ID} 正在初始化...")
+    
+    # --- ⚠️ 核心改进：打卡重试循环 ---
+    # 只要没打上卡，就一直尝试，直到这一棒的时长耗尽
+    while True:
+        if register_node():
+            print("✅ 节点成功接入 Hub，接力赛正式开始！")
+            break
+        else:
+            # 如果注册失败，等 30 秒再试，避免高频请求触发风控
+            print("⏳ 注册请求被拒或网络超时，30 秒后重试打卡...")
+            time.sleep(30)
+    
+    # --- 成功接入后的接力逻辑 ---
+    start_time = time.time()
+    # 设定最长运行时间为 3.8 小时
+    max_duration = 3.8 * 3600 
+    
+    while True:
+        # 检查本轮接力是否超时
+        if time.time() - start_time > max_duration:
+            print("⏱️ 本次接力时长已满 3.8 小时，主动下线，等待下一次调度...")
+            break
+            
+        try:
+            # 尝试接单并解决
+            if fetch_and_solve_task():
+                print("🎉 任务完成！休息 5 秒继续巡逻...")
+                time.sleep(5)
+            else:
+                # 保持 3 秒的黄金频率刷新大厅
+                time.sleep(3) 
+        except Exception as e:
+            # 即使中间报错，也只休息 10 秒，绝对不退出
+            print(f"⚠️ 巡逻异常: {e}，正在重启引擎...")
+            time.sleep(10)
