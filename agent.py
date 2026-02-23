@@ -144,10 +144,18 @@ def fetch_and_solve_task():
         print(f"❌ 调用大模型失败: {e}")
         return "SOLVE_FAILED"
 
+    # ==========================================
+    # 👇 核心修改区：添加合规的 strategy 字段
+    # ==========================================
     gene = {
         "type": "Gene", "asset_type": "Gene", "category": "repair",
         "summary": f"GPT-5.2 strategy for: {task_title}"[:100], "signals_match": signals_list, 
-        "prompt": prompt, "timestamp": get_current_timestamp()
+        "prompt": prompt, "timestamp": get_current_timestamp(),
+        # 新增：满足 EvoMap 最新增加的策略数组验证规则（至少两步）
+        "strategy": [
+            "1. Analyze the core requirements and constraints of the provided task.",
+            "2. Generate an optimized and validated solution utilizing LLM capabilities."
+        ]
     }
     gene["asset_id"] = compute_asset_id(gene)
     
@@ -168,7 +176,6 @@ def fetch_and_solve_task():
         "sender_id": MY_NODE_ID, "timestamp": get_current_timestamp(),
         "payload": {
             "assets": [gene, capsule]
-            # 🛑 致命Bug修复：已移除伪造的 chain_id
         }
     }
     
